@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'oidc_subject',
+        'oidc_issuer',
     ];
 
     /**
@@ -47,6 +49,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'last_oidc_login_at' => 'datetime',
         ];
+    }
+
+    public function apiTokens()
+    {
+        return $this->hasMany(ApiToken::class);
     }
 }

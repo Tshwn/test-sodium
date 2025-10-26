@@ -10,6 +10,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/oidc', fn () => Inertia::render('oidc/login'))->name('oidc.demo');
+Route::get('/oidc/login', fn () => Inertia::render('oidc/login'))->name('oidc.login');
+Route::get('/oidc/profile', fn () => Inertia::render('oidc/profile'))->name('oidc.profile');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
