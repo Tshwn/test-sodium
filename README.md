@@ -40,6 +40,39 @@ OIDC_TOKEN_TTL=3600
 
 `OidcJwksProvider` fetches the discovery document + JWKS via Laravel's HTTP client and caches both the live and "last good" responses so verification continues even if the provider temporarily responds with 5xx.
 
+## Mobile OAuth ID Token Endpoints
+
+Native mobile clients that sign in with Google or Apple can POST the raw ID token to dedicated endpoints:
+
+- `POST /api/auth/google` leverages [`google/apiclient`](https://github.com/googleapis/google-api-php-client) to run `verifyIdToken`, then double-checks the `iss` and `aud` claims for `https://accounts.google.com` and your configured OAuth client ID before issuing an API token.
+- `POST /api/auth/apple` uses a bespoke `App\Services\AppleService` built on `firebase/php-jwt` + Apple's JWKS document to validate the signature and claims, returning either an issued API token or a marker that registration is required.
+
+Both endpoints respond with `{ oauth_service, oauth_id, is_unregistered }`, and when a matching user exists they also include an issued API token plus the normalized claims used for verification.
+
+### Claim Validation Notes
+
+- `iss`: Locked to the provider's documented issuer (`https://accounts.google.com` or `https://appleid.apple.com`) so tokens minted for other relying parties are rejected.
+- `aud`: Compared against your configured client IDs. This blocks replaying an ID token that was issued to another mobile app.
+- `exp` / `iat`: Checked using UTC timestamps; expired or future-dated tokens are turned away.
+- `nonce`: You can pass the nonce hash used on iOS—Apple returns the SHA256 value and the service compares it when supplied.
+
+### Additional Environment Variables
+
+```
+GOOGLE_OAUTH_CLIENT_ID=your-google-client-id
+GOOGLE_ALLOWED_AUDIENCES=client-id-1,client-id-2
+GOOGLE_TOKEN_TTL=3600
+
+APPLE_OAUTH_CLIENT_ID=com.example.service
+APPLE_OAUTH_CLIENT_IDS=com.example.service,com.example.app
+APPLE_OAUTH_ISSUER=https://appleid.apple.com
+APPLE_OIDC_DISCOVERY=https://appleid.apple.com/.well-known/openid-configuration
+APPLE_ALLOWED_ALGS=RS256
+APPLE_OIDC_LEEWAY=120
+APPLE_OIDC_CACHE_TTL=300
+APPLE_TOKEN_TTL=3600
+```
+
 ### Running Locally
 
 1. **Install dependencies**

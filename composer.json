@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "firebase/php-jwt": "^6.11",
+        "google/apiclient": "^2.16",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
